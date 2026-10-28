@@ -1,0 +1,26 @@
+spec:
+  inputs:
+    terraform-module-dir:
+      type: string
+      description: "The relative path to the root directory of the Terraform project."
+      default: modules/${CI_PROJECT_NAME}
+    terraform-module-name:
+      type: string
+      description: "The name of your Terraform module, must not have any spaces or underscores (will be translated to hyphens)."
+      default: ${CI_PROJECT_NAME}
+    terraform-module-system:
+      type: string
+      description: "The system or provider your Terraform module targets (ex. local, aws, google)."
+    terraform-module-version:
+      type: string
+      description: "The version - it's recommended to follow SemVer for Terraform Module Versioning."
+      default: ${CI_COMMIT_TAG}
+---
+".publish-module:$[[ inputs.terraform-module-name | expand_vars ]]":
+  image: curlimages/curl:latest
+  script:
+    - TERRAFORM_MODULE_NAME=$(echo "$[[ inputs.terraform-module-name ]]" | tr " _" -) # module-name must not have spaces or underscores, so translate them to hyphens
+    - tar -vczf /tmp/${TERRAFORM_MODULE_NAME}-$[[ inputs.terraform-module-system ]]-$[[ inputs.terraform-module-version ]].tgz -C $[[ inputs.terraform-module-dir ]] --exclude=./.git .
+    - 'curl --fail-with-body --location --header "JOB-TOKEN: ${CI_JOB_TOKEN}"
+      --upload-file /tmp/${TERRAFORM_MODULE_NAME}-$[[ inputs.terraform-module-system ]]-$[[ inputs.terraform-module-version ]].tgz
+      ${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/terraform/modules/${TERRAFORM_MODULE_NAME}/$[[ inputs.terraform-module-system ]]/$[[ inputs.terraform-module-version ]]/file'

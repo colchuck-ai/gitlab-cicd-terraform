@@ -1,0 +1,16 @@
+spec:
+  inputs:
+    terraform-image-version:
+      type: string
+      description: "The version of hashicorp/terraform to use."
+      default: latest
+      # Supports any valid terraform version tag from the official registry
+---
+.format-check:
+  image:
+    name: "${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/hashicorp/terraform:$[[ inputs.terraform-image-version ]]"
+    entrypoint:
+      - /usr/bin/env
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+  script:
+    - terraform fmt -recursive -check -diff

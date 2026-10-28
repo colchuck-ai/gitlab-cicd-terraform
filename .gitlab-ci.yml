@@ -1,0 +1,26 @@
+include:
+  - component: ${CI_SERVER_FQDN}/engineering/dev-tools/internal/gitlab-cicd-workflow/workflow@1
+  - component: ${CI_SERVER_FQDN}/engineering/dev-tools/internal/gitlab-cicd-workflow/run-if-protected@1
+
+default:
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/node:20
+  before_script:
+    - npm config set -- //${CI_SERVER_FQDN}/api/v4/groups/1234/-/packages/npm/:_authToken=${ENGINEERING_DEV_TOOLS_INTERNAL_DEPLOY_PASSWORD}
+    - npm config set @engineering:registry=https://${CI_SERVER_FQDN}/api/v4/groups/1234/-/packages/npm/
+    - npm install
+
+stages:
+  - test
+  - release
+
+lint:
+  stage: test
+  script:
+    - npm run lint
+
+release:
+  stage: release
+  extends:
+    - .run-if-protected
+  script:
+    - npx semantic-release

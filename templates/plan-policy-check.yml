@@ -1,0 +1,70 @@
+# Plan Policy Check Component
+#
+# This component provides a job template for running OPA policy checks against Terraform plans.
+# It creates a hidden job that can be extended in your pipeline.
+#
+# The component expects OPA policies to be stored in a .opa/ directory at the root of your project.
+# Policies should be written to evaluate the Terraform plan JSON output.
+
+spec:
+  inputs:
+    decision:
+      type: string
+      description: "The OPA decision to evaluate (e.g., 'terraform')"
+    environment:
+      type: string
+      description: "The environment (e.g., test, prod)"
+    provider:
+      type: string
+      description: "The provider (e.g., multi, aws, azure)"
+    region:
+      type: string
+      description: "The region (e.g., global, us-east-1)"
+    allow-failure:
+      type: boolean
+      description: "Whether the job should be allowed to fail without failing the pipeline"
+      default: false
+    opa-version:
+      type: string
+      description: "The version of OPA to use"
+      default: "v1.4.2"
+---
+.plan-policy-check:$[[ inputs.decision ]]:$[[ inputs.environment ]]:$[[ inputs.provider ]]:$[[ inputs.region ]]:
+  image: ${CI_DEPENDENCY_PROXY_DIRECT_GROUP_IMAGE_PREFIX}/debian:12-slim
+  before_script:
+    - apt-get update
+    - apt-get install -y curl jq
+    - curl -L -o opa https://github.com/open-policy-agent/opa/releases/download/$[[ inputs.opa-version ]]/opa_linux_amd64
+    - chmod +x opa
+    - mv opa /usr/local/bin/
+  variables:
+    PLAN_JSON_PATH: $CI_PROJECT_DIR/environments/$[[ inputs.environment ]]/$[[ inputs.provider ]]/$[[ inputs.region ]]/plan.json
+  script:
+    - |
+      echo "Checking decision $[[ inputs.decision ]] for plan $PLAN_JSON_PATH"
+
+      # Check if plan file exists
+      if [ ! -f "$PLAN_JSON_PATH" ]; then
+        echo "No plan file found at $PLAN_JSON_PATH - assuming no changes to apply"
+        exit 0
+      fi
+
+      # Check if OPA policies exist
+      if [ ! -d ".opa/" ]; then
+        echo "Error: OPA policies directory not found at .opa/"
+        exit 1
+      fi
+
+      # Run OPA evaluation
+      result=$(opa exec --decision $[[ inputs.decision ]] --bundle .opa/ $PLAN_JSON_PATH)
+      echo "$result"
+
+      # Check for violations and display them clearly
+      if echo "$result" | jq -e '.result[0].result | length > 0' > /dev/null; then 
+        echo "Policy violations found:"
+        echo "$result" | jq -r '.result[0].result[] | "- " + .'
+        exit 1
+      else
+        echo "All policy checks passed"
+      fi
+  allow_failure: $[[ inputs.allow-failure ]]

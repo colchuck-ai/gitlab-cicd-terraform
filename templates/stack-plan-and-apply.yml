@@ -1,0 +1,58 @@
+spec:
+  inputs:
+    environment:
+      type: string
+    provider:
+      type: string
+      description: "aws, vault, etc."
+    region:
+      type: string
+      description: "global, us-east-1, etc."
+    stack:
+      type: string
+      description: "stack name for partitioning"
+    use-plan:
+      type: boolean
+      default: true
+      description: >
+        If true, the apply job requires the plan artifact (plan.tfplan) and applies it.
+        If false, the apply job skips any plan file.
+        WARNING: Skipping a plan (use-plan = false) may cause unintended changes.
+---
+.plan:$[[ inputs.environment ]]:$[[ inputs.provider ]]:$[[ inputs.region ]]:$[[ inputs.stack ]]:
+  variables:
+    TF_PATH: "environments/$[[ inputs.environment ]]/$[[ inputs.provider ]]/$[[ inputs.region ]]/$[[ inputs.stack ]]"
+  script:
+    - cd $TF_PATH
+    - terraform init
+    - terraform plan -out=plan.tfplan
+    - terraform show -json plan.tfplan > plan.json
+    - cat plan.json | jq -r '([.resource_changes[]?.change.actions?]|flatten)|{"create":(map(select(.=="create"))|length),"update":(map(select(.=="update"))|length),"delete":(map(select(.=="delete"))|length)}' > plan.report.json
+  artifacts:
+    expire_in: 30m # <‑‑ plans auto‑expire after 30m (override if needed)
+    paths:
+      - "${CI_PROJECT_DIR}/${TF_PATH}/plan.tfplan"
+      - "${CI_PROJECT_DIR}/${TF_PATH}/plan.json"
+    reports:
+      terraform: "${CI_PROJECT_DIR}/${TF_PATH}/plan.report.json"
+
+.apply:$[[ inputs.environment ]]:$[[ inputs.provider ]]:$[[ inputs.region ]]:$[[ inputs.stack ]]:
+  variables:
+    TF_PATH: "environments/$[[ inputs.environment ]]/$[[ inputs.provider ]]/$[[ inputs.region ]]/$[[ inputs.stack ]]"
+  script:
+    - cd $TF_PATH
+    - terraform init
+    - |
+      if $[[ inputs.use-plan ]]; then
+        if [ -f "plan.tfplan" ]; then
+          echo "Applying using the provided Terraform plan (plan.tfplan)..."
+          terraform apply -auto-approve plan.tfplan
+        else
+          echo "ERROR: use-plan is true, but plan.tfplan was not found (it may have expired)."
+          echo "Re‑run the plan job or set use-plan=false if you really want a direct apply."
+          exit 1
+        fi
+      else
+        echo "WARNING: use-plan is false — applying without a reviewed plan."
+        terraform apply -auto-approve
+      fi
