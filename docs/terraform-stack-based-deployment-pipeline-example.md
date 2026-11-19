@@ -84,7 +84,7 @@ Stack-based deployments benefit from GitLab's parent-child pipeline architecture
 
 ## Real-World Example: Asset Inventory Resource Deployment
 
-For a production implementation of stack-based pipelines using parent-child architecture, refer to the [Asset Inventory resource deployment project](https://gitlab.example.com/engineering/asset-inventory/internal/asset-inventory-resource-deployment). This project demonstrates:
+For a production implementation of stack-based pipelines using parent-child architecture, refer to the Asset Inventory resource deployment project. This project demonstrates:
 
 - Multiple independent stacks
 - Dynamic pipeline generation using templates
@@ -218,6 +218,6 @@ environments/test/multi/global/
 
 ## Related Documentation
 
-- [Standard Terraform Deployment Structure](https://gitlab.example.com/engineering/workload-handbook/internal/workload-handbook/-/blob/master/tools/terraform/terraform.md)
-- [Terraform Stack Decision Record](https://gitlab.example.com/engineering/workload-handbook/internal/workload-handbook/-/blob/master/decision-records/use-terraform-stacks-for-independent-concern-partitioning.md)
+- [Standard Terraform Deployment Structure](https://github.com/colchuck-ai/workload-handbook/blob/main/tools/terraform/terraform.md)
+- [Terraform Stack Decision Record](https://github.com/colchuck-ai/workload-handbook/blob/main/decision-records/use-terraform-stacks-for-independent-concern-partitioning.md)
 - [GitLab CI/CD Components Documentation](https://docs.gitlab.com/ci/components/)

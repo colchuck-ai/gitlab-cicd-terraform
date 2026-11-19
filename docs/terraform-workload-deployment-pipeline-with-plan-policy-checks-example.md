@@ -268,4 +268,4 @@ apply:prod:platx:global:
 
 This pipeline example **does not include credential retrieval or environment access logic.** Instead, it provides `before_script` placeholders in each plan and apply job for inserting credential retrieval commands.
 
-Users are encouraged to integrate a solution like [gitlab-cicd-temp-creds](https://gitlab.example.com/engineering/dev-tools/internal/gitlab-cicd-temp-creds) components to automate the retrieval and injection of **temporary access credentials** needed for interacting with Terraform backends and cloud providers.
+Users are encouraged to integrate a solution like gitlab-cicd-temp-creds components to automate the retrieval and injection of **temporary access credentials** needed for interacting with Terraform backends and cloud providers.

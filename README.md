@@ -4,9 +4,9 @@ The purpose of this [gitlab cicd component](https://docs.gitlab.com/ci/component
 
 It should be used in conjunction with:
 
-- [gitlab-cicd-deployment-workflow components](https://gitlab.example.com/engineering/dev-tools/internal/gitlab-cicd-deployment-workflow)
-- [gitlab-cicd-release-workflow components](https://gitlab.example.com/engineering/dev-tools/internal/gitlab-cicd-release-workflow).
-- [gitlab-cicd-temp-creds components](https://gitlab.example.com/engineering/dev-tools/internal/gitlab-cicd-temp-creds)
+- [gitlab-cicd-deployment-workflow components](https://github.com/colchuck-ai/gitlab-cicd-deployment-workflow)
+- [gitlab-cicd-release-workflow components](https://github.com/colchuck-ai/gitlab-cicd-release-workflow).
+- gitlab-cicd-temp-creds components
 
 See [usage](#usage) for examples.
 
@@ -34,7 +34,7 @@ See [usage](#usage) for examples.
 
 ### `plan-and-apply` Component
 
-This component assumes that your repository follows the [standard terraform deployment structure](https://gitlab.example.com/engineering/workload-handbook/internal/workload-handbook/-/blob/master/tools/terraform/terraform.md) or the [standard terraform module structure](https://gitlab.example.com/engineering/workload-handbook/internal/workload-handbook/-/blob/master/tools/terraform/terraform.md).
+This component assumes that your repository follows the [standard terraform deployment structure](https://github.com/colchuck-ai/workload-handbook/blob/main/tools/terraform/terraform.md) or the [standard terraform module structure](https://github.com/colchuck-ai/workload-handbook/blob/main/tools/terraform/terraform.md).
 
 The `plan-and-apply` component creates hidden jobs based on the inputs provided:
 
